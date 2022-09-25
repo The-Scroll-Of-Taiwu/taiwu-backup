@@ -1,0 +1,18 @@
+[package]
+name = "taiwu"
+authors = ["owtotwo <owtotwo@163.com>"]
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+chrono = "0.4.22"
+directories = "4.0.1"
+log = "0.4.17"
+notify = "5.0.0"
+simplelog = "0.12.0"
+steamlocate = "1.0.2"
+thiserror = "1.0.35"
+tray-item = "0.7.1"
+
+[build-dependencies]
+windres = "0.2.2"
