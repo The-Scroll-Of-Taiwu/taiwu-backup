@@ -95,8 +95,6 @@ impl Taiwu {
     pub fn watch(&self) -> Result<()> {
         let (tx, rx) = std::sync::mpsc::channel();
     
-        // Automatically select the best implementation for your platform.
-        // You can also access each implementation directly e.g. INotifyWatcher.
         let mut watcher = RecommendedWatcher::new(tx, Config::default())?;
     
         debug!("RecommendedWatcher::kind() is {:?}", RecommendedWatcher::kind());
