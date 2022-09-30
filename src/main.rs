@@ -12,7 +12,12 @@ use tray_item::TrayItem;
 
 use taiwu::Taiwu;
 
+const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
+const APP_AUTHOR: &'static str = "owtotwo";
+
 const LOG_TEMP_FOLDER_NAME: &'static str = "TaiwuBackupLogs";
+const GITHUB_REPO_URL: &'static str = "https://github.com/The-Scroll-Of-Taiwu/taiwu-backup";
+
 
 use std::process::Command;
 
@@ -21,7 +26,8 @@ fn main() {
     let log_file = temp_log_file(&log_folder).unwrap();
     let _ = WriteLogger::init(LevelFilter::Info, Config::default(), log_file);
 
-    let mut tray = TrayItem::new("Taiwu Backup", "TAIWU_ICON_1").unwrap();
+    let title = format!("Taiwu Backup (v{}) by {}", APP_VERSION, APP_AUTHOR);
+    let mut tray = TrayItem::new(&title, "TAIWU_ICON_1").unwrap();
 
     let tw = match Taiwu::new() {
         Ok(tw) => tw,
@@ -57,13 +63,20 @@ fn main() {
     })
     .unwrap();
 
-    let tw1 = Arc::clone(&tw);
-    tray.add_menu_item("退出", move || {
-        debug!("Quit occurred!");
-        tw1.unwatch();
+    tray.add_menu_item("打开GitHub项目", move || {
+        debug!("Open github repository of this program occurred!");
+        open_url_in_browser(GITHUB_REPO_URL);
     })
     .unwrap();
 
+    let tw1 = Arc::clone(&tw);
+    tray.add_menu_item("退出", move || {
+        debug!("Quit occurred!");
+        tw1.unwatch(); // tricky, then watch will return, so handle.join() finish
+    })
+    .unwrap();
+
+    // do backup once on every boot
     if let Err(e) = tw.backup_once() {
         error!("[backup_once] error: {:?}", e);
         return;
@@ -97,8 +110,15 @@ fn temp_log_folder() -> PathBuf {
 }
 
 fn open_folder_in_explorer(folder: &Path) {
-    Command::new("explorer")
-        .arg(folder)
-        .spawn()
-        .unwrap();
+    match Command::new("explorer").arg(folder).spawn() {
+        Ok(_) => debug!("Opened folder `{}` in explorer", folder.display()),
+        Err(e) => error!("An error occurred when opening folder `{}` in explorer: \n{}", folder.display(), e),
+    }
+}
+
+fn open_url_in_browser(url: &str) {
+    match open::that(url) {
+        Ok(()) => debug!("Open url `{}` in default browser", url),
+        Err(e) => error!("An error occurred when opening url `{}` in default browser: \n{}", url, e),
+    }
 }
