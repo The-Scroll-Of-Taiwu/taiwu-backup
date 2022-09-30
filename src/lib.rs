@@ -81,6 +81,24 @@ impl Taiwu {
         self.save_root().join(format!("world_{}", world)).join(TAIWU_GAME_SAVE_FILE_NAME)
     }
 
+    pub fn backup_once_for_new_save(&self) -> Result<()> {
+        trace!("do backup once if the save file has not been backed up before");
+        for world in 1..=TAIWU_GAME_SAVE_WORLD_NUMBER_MAX {
+            let save = self.save_file(world);
+            if !save.is_file() {
+                continue;
+            }
+            let same = self.has_same_backup_file(&save)?;
+            if let Some(same) = same {
+                info!("[Not Backup] {}", save.display());
+                info!("[Same Exist] {}", same.display());
+            } else {
+                self.backup(&save)?;
+            }
+        }
+        Ok(())
+    }
+
     pub fn backup_once(&self) -> Result<()> {
         trace!("do backup once");
         for world in 1..=TAIWU_GAME_SAVE_WORLD_NUMBER_MAX {
@@ -166,6 +184,25 @@ impl Taiwu {
         false
     }
 
+    fn has_same_backup_file(&self, src: &Path) -> io::Result<Option<PathBuf>> {
+        let folder_name = src.parent().unwrap().file_name().unwrap();
+        let backup_folder = self.backup_root.join(folder_name);
+
+        let src_meta = src.metadata()?;
+        assert!(src_meta.is_file());
+        
+        for entry in fs::read_dir(&backup_folder)? {
+            let path = entry?.path();
+            let meta = path.metadata()?;
+
+            if is_same_file(&src_meta, &meta)? {
+                return Ok(Some(path));
+            }
+        }
+
+        Ok(None)
+    }
+
     fn backup(&self, src: &Path) -> io::Result<()> {
         let file_name = new_backup_file_name_now();
         let folder_name = src.parent().unwrap().file_name().unwrap();
@@ -205,4 +242,10 @@ fn new_backup_file_name_now() -> String {
     let now = chrono::offset::Local::now();
     let timestamp = now.timestamp_nanos();
     format!("{}.{}", TAIWU_GAME_SAVE_FILE_NAME, timestamp)
+}
+
+fn is_same_file(a: &fs::Metadata, b: &fs::Metadata) -> io::Result<bool> {
+    let a = (a.file_type(), a.len(), a.modified()?);
+    let b = (b.file_type(), b.len(), b.modified()?);
+    Ok(a == b)
 }

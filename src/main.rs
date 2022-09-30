@@ -76,8 +76,8 @@ fn main() {
     })
     .unwrap();
 
-    // do backup once on every boot
-    if let Err(e) = tw.backup_once() {
+    // do backup once on every boot if it has not been backed up
+    if let Err(e) = tw.backup_once_for_new_save() {
         error!("[backup_once] error: {:?}", e);
         return;
     }
