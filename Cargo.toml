@@ -2,6 +2,7 @@
 name = "taiwu"
 authors = ["owtotwo <owtotwo@163.com>"]
 version = "0.1.1"
+repository = "https://github.com/The-Scroll-Of-Taiwu/taiwu-backup"
 edition = "2021"
 
 [dependencies]

@@ -1,3 +1,4 @@
+// Prevent showing the console window
 #![windows_subsystem = "windows"]
 
 use std::fs;
@@ -13,13 +14,13 @@ use tray_item::TrayItem;
 use taiwu::Taiwu;
 
 const APP_VERSION: &str = env!("CARGO_PKG_VERSION");
+const APP_REPOSITORY: &str = env!("CARGO_PKG_REPOSITORY");
+ 
+// Instead of env!("CARGO_PKG_AUTHORS")
 const APP_AUTHOR: &'static str = "owtotwo";
-
+ 
 const LOG_TEMP_FOLDER_NAME: &'static str = "TaiwuBackupLogs";
-const GITHUB_REPO_URL: &'static str = "https://github.com/The-Scroll-Of-Taiwu/taiwu-backup";
 
-
-use std::process::Command;
 
 fn main() {
     let log_folder = temp_log_folder();
@@ -65,7 +66,7 @@ fn main() {
 
     tray.add_menu_item("打开GitHub项目", move || {
         debug!("Open github repository of this program occurred!");
-        open_url_in_browser(GITHUB_REPO_URL);
+        open_url_in_browser(APP_REPOSITORY);
     })
     .unwrap();
 
@@ -110,6 +111,8 @@ fn temp_log_folder() -> PathBuf {
 }
 
 fn open_folder_in_explorer(folder: &Path) {
+    use std::process::Command;
+
     match Command::new("explorer").arg(folder).spawn() {
         Ok(_) => debug!("Opened folder `{}` in explorer", folder.display()),
         Err(e) => error!("An error occurred when opening folder `{}` in explorer: \n{}", folder.display(), e),
